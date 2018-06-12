@@ -1,0 +1,32 @@
+{
+  "name": "wpsmith/search",
+  "description": "WordPress search.",
+  "keywords": [
+    "wordpress",
+    "search",
+    "post types"
+  ],
+  "homepage": "https://github.com/wpsmith/Search",
+  "license": "GPL-2.0+",
+  "authors": [
+    {
+      "name": "Travis Smith",
+      "email": "t@wpsmith.net",
+      "homepage": "http://wpsmith.net/",
+      "role": "Developer"
+    }
+  ],
+  "support": {
+    "issues": "https://github.com/wpsmith/Search/issues"
+  },
+  "require": {
+    "php": ">=5.2.4",
+    "wpsmith/fields": "^0.0.1",
+    "wpsmith/singleton": "0.0.1"
+  },
+  "autoload": {
+    "psr-4": {
+      "WPS\\Core\\": "src/"
+    }
+  }
+}
