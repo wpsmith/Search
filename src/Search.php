@@ -55,15 +55,9 @@ if ( ! class_exists( '\WPS\Core\Search' ) ) {
 				->addTrueFalse( 'exclude_from_search' );
 
 			$post_types = $this->get_post_types();
-			$counter    = 1;
+			$location   = $content->setLocation( 'post_type', '==', '' );
 			foreach ( $post_types as $post_type ) {
-				if ( 1 === $counter ) {
-					$content->setLocation( 'post_type', '==', $post_type );
-				} else {
-					$content->or( 'post_type', '==', $post_type );
-				}
-
-				$counter ++;
+				$location->or( 'post_type', '==', $post_type );
 			}
 
 			$fields->add( $content );
@@ -110,14 +104,48 @@ if ( ! class_exists( '\WPS\Core\Search' ) ) {
 		 */
 		public function pre_get_posts( $query ) {
 
-			if ( ! $query->is_main_query() || is_admin() ) {
+			if ( ! $query->is_main_query() || is_admin() || ! $query->is_search() ) {
 				return;
 			}
 
-			$query->set( 'post_type', $this->get_post_types() );
-			$query->set( 'meta_key', 'exclude_from_search' );
-			$query->set( 'meta_value', true );
-			$query->set( 'meta_compare', '!=' );
+			// Add Post Types
+			$post_type = $query->get( 'post_type' );
+			$query->set( 'post_type', array_unique( array_merge( (array)$post_type, $this->get_post_types() ) ) );
+
+			//Get original meta query
+			$meta_query = $query->get( 'meta_query' );
+
+			$not_exclude_from_search = array(
+				'key'     => 'exclude_from_search',
+				'value'   => 1,
+				'type' => 'NUMERIC',
+				'compare' => '!=',
+			);
+			$exclude_from_search_not_exists = array(
+				'key'     => 'exclude_from_search',
+				'compare' => 'NOT EXISTS',
+			);
+
+			if ( ! is_array( $meta_query ) ) {
+				$meta_query = array(
+					$not_exclude_from_search,
+					$exclude_from_search_not_exists,
+					'relation' => 'OR',
+				);
+			} else {
+				if ( ! isset( $meta_query['relation'] ) ) {
+					$meta_query['relation'] = 'OR';
+				}
+
+				if ( 'OR' === $meta_query['relation'] ) {
+					$meta_query[] = $not_exclude_from_search;
+					$meta_query[] = $exclude_from_search_not_exists;
+				} else {
+					$meta_query[] = $not_exclude_from_search;
+				}
+			}
+
+			$query->set( 'meta_query', $meta_query );
 
 		}
 	}
