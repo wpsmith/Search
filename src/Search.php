@@ -2,6 +2,8 @@
 
 namespace WPS\Core;
 
+use WPS;
+
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -14,6 +16,13 @@ if ( ! class_exists( '\WPS\Core\Search' ) ) {
 	 * @package WPS\Core
 	 */
 	class Search extends Singleton {
+
+		/**
+		 * Template loader.
+		 *
+		 * @var WPS\Templates\Template_Loader
+		 */
+		private $template_loader;
 
 		/**
 		 * Array of post types to search.
@@ -40,6 +49,36 @@ if ( ! class_exists( '\WPS\Core\Search' ) ) {
 			add_filter( 'plugins_loaded', array( $this, 'plugins_loaded' ) );
 			add_filter( 'pre_get_posts', array( $this, 'pre_get_posts' ) );
 			add_filter( 'core_acf_fields', array( $this, 'core_acf_fields' ) );
+			add_filter( 'template_include', array( $this, 'template_include' ) );
+		}
+
+		/**
+		 * Maybe to include our template.
+		 *
+		 * @param string $template The path of the template to include.
+		 *
+		 * @return string
+		 */
+		public function template_include( $original_template ) {
+			if ( is_admin() || ! is_search() ) {
+				return $original_template;
+			}
+
+			if ( ! function_exists( 'WP_Filesystem' ) ) {
+				require_once ABSPATH . 'wp-admin/includes/file.php';
+			}
+			WP_Filesystem();
+			global $wp_filesystem;
+
+			// include custom template.
+			$template_loader = $this->get_template_loader();
+			$template        = $template_loader->get_template_part( 'search' );
+
+			if ( $wp_filesystem->is_file( $template ) ) {
+				return $template;
+			}
+
+			return $original_template;
 		}
 
 		/**
@@ -147,6 +186,25 @@ if ( ! class_exists( '\WPS\Core\Search' ) ) {
 
 			$query->set( 'meta_query', $meta_query );
 
+		}
+
+		/**
+		 * Gets the template loader.
+		 *
+		 * @return WPS\Templates\Template_Loader
+		 */
+		protected function get_template_loader() {
+			if ( $this->template_loader ) {
+				return $this->template_loader;
+			}
+
+			// Create template loader
+			$this->template_loader = new WPS\Templates\Template_Loader( array(
+				'filter_prefix'    => 'wps_search',
+				'plugin_directory' => plugin_dir_path(__FILE__ ),
+			) );
+
+			return $this->template_loader;
 		}
 	}
 }
