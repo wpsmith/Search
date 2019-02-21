@@ -1,6 +1,6 @@
 <?php
 
-namespace WPS\Templates;
+namespace WPS\WP\Templates;
 
 /**
  * Filter an array of objects.

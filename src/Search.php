@@ -1,19 +1,20 @@
 <?php
 
-namespace WPS\Core;
+namespace WPS\WP;
 
 use WPS;
+use WPS\Core\Singleton;
 
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-if ( ! class_exists( '\WPS\Core\Search' ) ) {
+if ( ! class_exists( '\WPS\WP\Search' ) ) {
 	/**
 	 * Class Search
 	 *
-	 * @package WPS\Core
+	 * @package WPS\WP
 	 */
 	class Search extends Singleton {
 
@@ -88,7 +89,7 @@ if ( ! class_exists( '\WPS\Core\Search' ) ) {
 		 */
 		public function core_acf_fields( $fields ) {
 
-			$builder = \WPS\Core\Fields::get_instance();
+			$builder = \WPS\WP\Fields::get_instance();
 			$content = $builder->new_fields_builder( 'search' );
 			$content
 				->addTrueFalse( 'exclude_from_search' );
@@ -132,7 +133,7 @@ if ( ! class_exists( '\WPS\Core\Search' ) ) {
 
 			$this->get_post_types();
 
-			\WPS\Core\Fields::get_instance();
+			\WPS\WP\Fields::get_instance();
 
 		}
 
@@ -191,7 +192,7 @@ if ( ! class_exists( '\WPS\Core\Search' ) ) {
 		/**
 		 * Gets the template loader.
 		 *
-		 * @return WPS\Templates\Template_Loader
+		 * @return WPS\WP\Templates\Template_Loader
 		 */
 		protected function get_template_loader() {
 			if ( $this->template_loader ) {
@@ -199,7 +200,7 @@ if ( ! class_exists( '\WPS\Core\Search' ) ) {
 			}
 
 			// Create template loader
-			$this->template_loader = new WPS\Templates\Template_Loader( array(
+			$this->template_loader = new WPS\WP\Templates\Template_Loader( array(
 				'filter_prefix'    => 'wps_search',
 				'plugin_directory' => plugin_dir_path(__FILE__ ),
 			) );
